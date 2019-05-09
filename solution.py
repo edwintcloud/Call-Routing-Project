@@ -1,6 +1,8 @@
 import csv
 from random import randint
 import time
+import resource
+import platform
 
 
 class CallRoutes(object):
@@ -63,4 +65,11 @@ if __name__ == '__main__':
     end = time.time()
     print("\nCross-compared 10,000 phone numbers with 8 different carriers and a total of 11,141,713 different route costs.")
     print("\nFor the sake of an example, 100 random numbers from the 10,000 in the data set were displayed above.")
-    print("\nCompleted in {} seconds.".format(round(end-start, 4)))
+    print("\nRuntime: {} seconds.".format(round(end-start, 4)))
+    # print memory usage
+    usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    if platform.system() == 'Linux':
+        usage = round(usage/float(1 << 10), 2)
+    else:
+        usage = round(usage/float(1 << 20), 2)
+    print("Memory Usage: {} mb.".format(usage))
