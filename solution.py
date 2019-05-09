@@ -51,11 +51,16 @@ if __name__ == '__main__':
                        ("carrierB", "route-costs-10.txt"),
                        ("carrierC", "route-costs-100.txt"),
                        ("carrierD", "route-costs-600.txt"),
-                       ("carrierE", "route-costs-35000.txt"))
+                       ("carrierE", "route-costs-35000.txt"),
+                       ("carrierF", "route-costs-106000.txt"),
+                       ("carrierG", "route-costs-1000000.txt"),
+                       ("carrierH", "route-costs-10000000.txt"))
 
     for _ in range(100):
         idx = randint(0, len(calls.numbers)-1)
         print("{} : {}".format(
             calls.numbers[idx], calls.get_cost(calls.numbers[idx])))
     end = time.time()
+    print("\nCross-compared 10,000 phone numbers with 8 different carriers and a total of 11,141,713 different route costs.")
+    print("\nFor the sake of an example, 100 random numbers from the 10,000 in the data set were displayed above.")
     print("\nCompleted in {} seconds.".format(round(end-start, 4)))
