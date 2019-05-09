@@ -51,7 +51,12 @@ class CallRoutes(object):
         with open('data/' + file_name) as f:
             csv_reader = csv.reader(f, delimiter=',')
             for row in csv_reader:
-                data[row[0]] = row[1]
+                # if the route is already in dictionary
+                # and the current route has a lower price,
+                # or if the route is not in dictionary
+                if (row[0] in data and data[row[0]] < row[1]) or (row[0] not in data):
+                    # update/insert the route cost
+                    data[row[0]] = row[1]
         return data
 
     def _read_numbers(self, file_name):
@@ -68,12 +73,12 @@ class CallRoutes(object):
         result = {}
         # iterate over phone numbers
         for number in self.numbers:
-            # trim numbers off the right side of the number until
-            # we find a match for each carrier
-            for index in range(len(number), 1, -1):
-                # iterate for each carrier, k is the carrier name
-                # and v is the dictionary of route costs
-                for k, v in self.routes.items():
+            # iterate for each carrier, k is the carrier name
+            # and v is the dictionary of route costs
+            for k, v in self.routes.items():
+                # trim numbers off the right side of the number until
+                # we find a match for each carrier
+                for index in range(len(number), 1, -1):
                     # if the trimmed number is in current carrier's
                     # route costs
                     if number[:index] in v:
@@ -91,6 +96,9 @@ class CallRoutes(object):
                             # create new entry in result[number] dictionary
                             # equal to carrier name: route cost for carrier
                             result[number][k] = v[number[:index]]
+                        # we found the longest matching prefix,
+                        # break from the inner loop
+                        break
             # if route was not found for any carriers, set it's cost to 0
             if number not in result:
                 result[number] = 0
