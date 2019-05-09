@@ -140,10 +140,8 @@ if __name__ == '__main__':
         print("{} : {}".format(
             calls.numbers[idx], calls.get_cost(calls.numbers[idx])))
     end = time.time()
-    print("\nCross-compared 10,000 phone numbers with 8 different carriers \
-        and a total of 11,141,713 different route costs.")
-    print("\nFor the sake of an example, 100 random numbers from the 10,000 \
-        in the data set were displayed above.")
+    print("\nCross-compared 10,000 phone numbers with 8 different carriers and a total of 11,141,713 different route costs.")
+    print("\nFor the sake of an example, 100 random numbers from the 10,000 in the data set were displayed above.")
     print("\nRuntime: {} seconds.".format(round(end-start, 4)))
     # print memory usage
     usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
@@ -157,3 +155,5 @@ if __name__ == '__main__':
     costs_gen = calls.yield_costs()
     for _ in range(10):
         print(next(costs_gen))
+
+    input("wit")
