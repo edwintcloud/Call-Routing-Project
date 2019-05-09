@@ -45,7 +45,8 @@ class CallRoutes(object):
     # CallRoutes - Intended Private Methods
     # ------------------------------------------------------------------------------
     def _read_routes(self, file_name):
-        """Read route costs file into a dictionary and return the result."""
+        """Read route costs file into a dictionary and return the result.
+        Runtime: Θ(n) Space: Θ(n)"""
         data = {}
         with open('data/' + file_name) as f:
             csv_reader = csv.reader(f, delimiter=',')
@@ -54,13 +55,15 @@ class CallRoutes(object):
         return data
 
     def _read_numbers(self, file_name):
-        """Read phone numbers into a list and return the result."""
+        """Read phone numbers into a list and return the result.
+        Runtime: Θ(n) Space: Θ(n)"""
         with open('data/'+file_name) as f:
             return f.read().splitlines()
 
     def _get_costs_for_numbers(self):
         """Get costs for all numbers for each carrier. 
-        Return resulting dictionary of dictionaries."""
+        Return resulting dictionary of dictionaries.
+        Runtime: Θ(nkl) Space: Θ(n)"""
         # create a result dictionary
         result = {}
         # iterate over phone numbers
@@ -98,11 +101,13 @@ class CallRoutes(object):
     # CallRoutes - Public Methods
     # ------------------------------------------------------------------------------
     def get_cost(self, phone_number):
-        """Return the carrier costs dictionary for a specified phone number."""
+        """Return the carrier costs dictionary for a specified phone number.
+        Runtime: Θ(1) Space: Θ(1)"""
         return self.costs[phone_number]
 
     def yield_costs(self):
-        """Return an iterator to iterate over each phone number in costs."""
+        """Return an iterator to iterate over each phone number in costs.
+        Runtime: Θ(1) Space: Θ(1)"""
         for cost in self.costs.items():
             yield cost
 
