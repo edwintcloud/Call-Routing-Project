@@ -45,6 +45,10 @@ class CallRoutes(object):
     def get_cost(self, phone_number):
         return self.costs[phone_number]
 
+    def yield_costs(self):
+        for cost in self.costs.items():
+            yield cost
+
 
 if __name__ == '__main__':
     start = time.time()
@@ -73,3 +77,8 @@ if __name__ == '__main__':
     else:
         usage = round(usage/float(1 << 20), 2)
     print("Memory Usage: {} mb.".format(usage))
+
+    print("\nBelow is an example of using a generator to get the results one by one.")
+    costs_gen = calls.yield_costs()
+    for _ in range(10):
+        print(next(costs_gen))
