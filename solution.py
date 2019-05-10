@@ -29,16 +29,22 @@ class CallRoutes(object):
         a fully qualified file name. carrier_route_costs is a variadic parameter,
         each of which should be a tuple of ('carrier name', 'file name')."""
 
+        # number of route costs
+        self.route_costs = 0
+
         # for each carrier_route_costs argument(variadic), map the name
         # to the dictionary of route costs for the file
+        # **this is an expensive operation** but it's the best we can do
         self.routes = {route_costs[0]: self._read_routes(
             route_costs[1]) for route_costs in carrier_route_costs}
 
         # set numbers to list of numbers from specified file
+        # **this is an expensive operation** but it's the best we can do
         self.numbers = self._read_numbers(numbers_file_name)
 
         # costs will be a dictionary of dictionaries mapping the phone
         # number to a dictionary of matched carrier costs
+        # **this is a decently fast operation**
         self.costs = self._get_costs_for_numbers()
 
     # ------------------------------------------------------------------------------
@@ -51,6 +57,7 @@ class CallRoutes(object):
         with open('data/' + file_name) as f:
             csv_reader = csv.reader(f, delimiter=',')
             for row in csv_reader:
+                self.route_costs += 1
                 # if the route is already in dictionary
                 # and the current route has a lower price,
                 # or if the route is not in dictionary
@@ -68,7 +75,10 @@ class CallRoutes(object):
     def _get_costs_for_numbers(self):
         """Get costs for all numbers for each carrier. 
         Return resulting dictionary of dictionaries.
-        Runtime: Θ(nkl) Space: Θ(n)"""
+        Runtime: Θ(nkl) Space: Θ(n).
+        Where n is the number of numbers, k is the 
+        number of carriers, and l is the iterations
+        needed to find a match from trimming off the end."""
         # create a result dictionary
         result = {}
         # iterate over phone numbers
@@ -108,10 +118,13 @@ class CallRoutes(object):
     # ------------------------------------------------------------------------------
     # CallRoutes - Public Methods
     # ------------------------------------------------------------------------------
-    def get_cost(self, phone_number):
+    def get_costs(self, phone_number):
         """Return the carrier costs dictionary for a specified phone number.
         Runtime: Θ(1) Space: Θ(1)"""
-        return self.costs[phone_number]
+        try:
+            return self.costs[phone_number]
+        except KeyError:
+            return "Key not found!"
 
     def yield_costs(self):
         """Return an iterator to iterate over each phone number in costs.
@@ -150,8 +163,8 @@ if __name__ == '__main__':
                        ("carrierG", "route-costs-1000000.txt"),
                        ("carrierH", "route-costs-10000000.txt"))
     load_time = round(time.time()-start, 4)
-    print("\nInitialized 11,141,712 route costs in {} seconds.".format(
-        load_time))
+    print("\nInitialized {:,} route costs in {} seconds.".format(calls.route_costs,
+                                                                 load_time))
     get_mem()
     while(True):
         print("\n==========================================")
@@ -173,13 +186,13 @@ if __name__ == '__main__':
             for _ in range(100):
                 idx = randint(0, len(calls.numbers)-1)
                 print("\n{} : {}".format(
-                    calls.numbers[idx], calls.get_cost(calls.numbers[idx])))
+                    calls.numbers[idx], calls.get_costs(calls.numbers[idx])))
             print("\nCompleted in {} seconds.".format(
                 round(time.time()-start, 4)))
         elif choice == 2:
             new_number = input("\nEnter full number with prefix: ")
             print("\n{} : {}".format(
-                new_number, calls.get_cost(new_number)))
+                new_number, calls.get_costs(new_number)))
         elif choice == 3:
             costs_gen = calls.yield_costs()
             while(True):
