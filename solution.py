@@ -119,12 +119,27 @@ class CallRoutes(object):
         for cost in self.costs.items():
             yield cost
 
+# ------------------------------------------------------------------------------
+# Memory Usage Function
+# ------------------------------------------------------------------------------
+
+
+def get_mem():
+    """Print memory usage to stdout."""
+    usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    if platform.system() == 'Linux':
+        usage = round(usage/float(1 << 10), 2)
+    else:
+        usage = round(usage/float(1 << 20), 2)
+    print("Current Memory Usage: {} mb.".format(usage))
+
 
 # ------------------------------------------------------------------------------
 # Main Entry Point
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
     start = time.time()
+    print("\nInitializing please wait...")
     calls = CallRoutes("phone-numbers-10000.txt",
                        ("carrierA", "route-costs-3.txt"),
                        ("carrierB", "route-costs-10.txt"),
@@ -134,26 +149,49 @@ if __name__ == '__main__':
                        ("carrierF", "route-costs-106000.txt"),
                        ("carrierG", "route-costs-1000000.txt"),
                        ("carrierH", "route-costs-10000000.txt"))
-
-    for _ in range(100):
-        idx = randint(0, len(calls.numbers)-1)
-        print("{} : {}".format(
-            calls.numbers[idx], calls.get_cost(calls.numbers[idx])))
-    end = time.time()
-    print("\nCross-compared 10,000 phone numbers with 8 different carriers and a total of 11,141,713 different route costs.")
-    print("\nFor the sake of an example, 100 random numbers from the 10,000 in the data set were displayed above.")
-    print("\nRuntime: {} seconds.".format(round(end-start, 4)))
-    # print memory usage
-    usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    if platform.system() == 'Linux':
-        usage = round(usage/float(1 << 10), 2)
-    else:
-        usage = round(usage/float(1 << 20), 2)
-    print("Memory Usage: {} mb.".format(usage))
-
-    print("\nBelow is an example of using a generator to get the results one by one.")
-    costs_gen = calls.yield_costs()
-    for _ in range(10):
-        print(next(costs_gen))
-
-    input("wit")
+    load_time = round(time.time()-start, 4)
+    print("\nInitialized 11,141,712 route costs in {} seconds.".format(
+        load_time))
+    get_mem()
+    while(True):
+        print("\n==========================================")
+        print("|              Main Menu                 |")
+        print("==========================================")
+        print("\nPlease select an option below:")
+        print("1. Print results for 100 random numbers.")
+        print("2. Get results for a new number.")
+        print("3. Iterate over results one-by-one.")
+        print("4. Display load time and memory statistics.")
+        print("5. Exit the program.")
+        choice = input("\nPlease enter a number: ")
+        try:
+            choice = int(choice)
+        except Exception:
+            break
+        if choice == 1:
+            start = time.time()
+            for _ in range(100):
+                idx = randint(0, len(calls.numbers)-1)
+                print("\n{} : {}".format(
+                    calls.numbers[idx], calls.get_cost(calls.numbers[idx])))
+            print("\nCompleted in {} seconds.".format(
+                round(time.time()-start, 4)))
+        elif choice == 2:
+            new_number = input("\nEnter full number with prefix: ")
+            print("\n{} : {}".format(
+                new_number, calls.get_cost(new_number)))
+        elif choice == 3:
+            costs_gen = calls.yield_costs()
+            while(True):
+                opt = input(
+                    "\nPress any key to get the next result or q to go back to main menu: ")
+                if opt == "q":
+                    break
+                print("\n{}".format(next(costs_gen)))
+        elif choice == 4:
+            print("\n11,141,712 route costs were loaded in {} seconds.".format(
+                load_time))
+            get_mem()
+        else:
+            break
+    print("\nGoodbye!")
