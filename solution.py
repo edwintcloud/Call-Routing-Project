@@ -2,8 +2,8 @@
 # File: solution.py
 #
 # Desc: Call Routing project solution file. This is the main solution as a longer
-#       startup time is an acceptable tradeoff for constant time lookups. In a
-#       realistic scenario, the server would stay running anyways so this tradoff
+#       startup time is an acceptable tradeoff for near constant time lookups. In
+#       a realistic scenario, the server would stay running anyways so this tradoff
 #       would be negligible.
 #
 # Copyright © 2019 Edwin Cloud and Asim Zaidi. All rights reserved.
