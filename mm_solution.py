@@ -71,7 +71,7 @@ class CallRoutes(object):
     # ------------------------------------------------------------------------------
     def get_costs(self, phone_number):
         """Return the carrier costs for a specified phone number.
-        Runtime: Θ(1) Space: Θ(1)"""
+        Runtime: Θ(n) Space: Θ(n)"""
         results = {}
         for carrier in self.routes.items():
             for i in range(len(phone_number), 1, -1):
