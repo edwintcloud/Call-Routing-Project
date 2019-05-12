@@ -132,15 +132,18 @@ if __name__ == '__main__':
     start = time.time()
     print("\nInitializing please wait...")
     # initialize the CallRoutes class with some data
+    # calls = CallRoutes("phone-numbers-10000.txt",
+    #                    ("carrierA", "route-costs-3.txt"),
+    #                    ("carrierB", "route-costs-10.txt"),
+    #                    ("carrierC", "route-costs-100.txt"),
+    #                    ("carrierD", "route-costs-600.txt"),
+    #                    ("carrierE", "route-costs-35000.txt"),
+    #                    ("carrierF", "route-costs-106000.txt"),
+    #                    ("carrierG", "route-costs-1000000.txt"),
+    #                    ("carrierH", "route-costs-10000000.txt"))
     calls = CallRoutes("phone-numbers-10000.txt",
-                       ("carrierA", "route-costs-3.txt"),
-                       ("carrierB", "route-costs-10.txt"),
-                       ("carrierC", "route-costs-100.txt"),
-                       ("carrierD", "route-costs-600.txt"),
-                       ("carrierE", "route-costs-35000.txt"),
-                       ("carrierF", "route-costs-106000.txt"),
-                       ("carrierG", "route-costs-1000000.txt"),
                        ("carrierH", "route-costs-10000000.txt"))
+
     # calculate and print load time and memory
     load_time = round(time.time()-start, 4)
     print("\nInitialized {:,} route costs in {} seconds.".format(calls.route_costs,
