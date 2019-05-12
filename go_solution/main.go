@@ -17,6 +17,7 @@ import (
 var (
 	print     = format.Println
 	costs = make(map[string]string)
+	total = 0
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 func mainMenu() {
 	for {
 		print(format.Underline("\nWelcome to the CallRoutes API!"))
-		print(format.Cyan(fmt.Sprintf("\n%d route costs currently loaded in memory.\n", len(costs))))
+		print(format.Cyan(fmt.Sprintf("\n%d route costs currently loaded in memory.\n", total)))
 		print(format.Green("1.) Load File into Memory"))
 		print(format.Green("2.) Lookup cost for a number"))
 		print(format.Green("3.) Lookup costs for all numbers in a file"))
@@ -84,7 +85,7 @@ func loadFile() {
 	print("Please make a selection:")
 	choice := getInput()
 	index, err := strconv.Atoi(choice)
-	if err != nil {
+	if err != nil || index < 0 || index >= len(files) {
 		return
 	}
 
@@ -114,6 +115,9 @@ func loadFile() {
 		// insert row into map if not in map or less 
 		// than value already in map
 		if v, ok := costs[row[0]]; (ok && v > row[1]) || !ok {
+			if !ok {
+				total++
+			}
 			costs[row[0]] = row[1]
 		}
 		
@@ -162,7 +166,7 @@ func getCosts(persist bool) {
 	print("Please make a selection:")
 	choice := getInput()
 	index, err := strconv.Atoi(choice)
-	if err != nil {
+	if err != nil || index < 0 || index >= len(files) {
 		return
 	}
 

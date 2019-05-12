@@ -54,11 +54,12 @@ class CallRoutes(object):
         with open('data/' + file_name) as f:
             for line in f:
                 row = line.strip().split(',')
-                self.route_costs += 1
                 # if the route is already in dictionary
                 # and the current route has a lower price,
                 # or if the route is not in dictionary
-                if (row[0] in data and data[row[0]] < row[1]) or (row[0] not in data):
+                if (row[0] in data and data[row[0]] > row[1]) or (row[0] not in data):
+                    if row[0] not in data:
+                        self.route_costs += 1
                     # update/insert the route cost
                     data[row[0]] = row[1]
         return data
