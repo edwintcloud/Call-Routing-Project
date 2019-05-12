@@ -2,7 +2,7 @@
 // File: main.go
 //
 // Desc: Call Routing project solution file in Go. This is the main solution as a 
-//       longer startup time is an acceptable tradeoff for near constant time 
+//       longer load time is an acceptable tradeoff for near constant time 
 //       lookups. In a realistic scenario, the server would stay running anyways so 
 //       this tradoff would be negligible.
 //
@@ -41,6 +41,8 @@ var (
 
 // main is the main entry point of the program.
 func main() {
+	
+	// main menu loop
     for {
 		print(format.Underline("\nWelcome to the CallRoutes API!"))
 		print(format.Cyan(fmt.Sprintf("\n%d route costs currently loaded in memory.\n", len(costs))))
