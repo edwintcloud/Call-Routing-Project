@@ -1,3 +1,4 @@
 *.txt
+!c++_solution/*.txt
 *.db
 go_solution/go_solution

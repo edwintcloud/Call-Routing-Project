@@ -1,10 +1,10 @@
 # ==================================================================================
 # File: solution.py
 #
-# Desc: Call Routing project solution file. This is the main solution as a longer
-#       startup time is an acceptable tradeoff for near constant time lookups. In
-#       a realistic scenario, the server would stay running anyways so this tradoff
-#       would be negligible.
+# Desc: Call Routing Project solution file. This is the main solution as a longer
+#       load time is an acceptable tradeoff for near constant time lookups. In
+#       a realistic scenario, the server would stay running with the route costs
+#       in memory so this tradoff would be unnoticed by the end-user.
 #
 # Copyright © 2019 Edwin Cloud and Asim Zaidi. All rights reserved.
 # ==================================================================================
@@ -16,6 +16,7 @@ from random import randint
 import time
 import resource
 import platform
+import os
 
 
 # ----------------------------------------------------------------------------------
@@ -26,49 +27,92 @@ class CallRoutes(object):
     # ------------------------------------------------------------------------------
     # CallRoutes - Constructor
     # ------------------------------------------------------------------------------
-    def __init__(self, numbers_file_name, *carrier_route_costs):
-        """Create a new CallRoutes instance. numbers_file_name should be 
-        a fully qualified file name. carrier_route_costs is a variadic parameter,
-        each of which should be a tuple of ('carrier name', 'file name')."""
 
-        # number of route costs
+    def __init__(self):
+        """Create a new CallRoutes instance.
+        Runtime: Θ(1) Space: Θ(1)."""
+
+        # total number of route costs
         self.route_costs = 0
 
-        # for each carrier_route_costs argument(variadic), map the name
-        # to the dictionary of route costs for the file
-        # **this is an expensive operation** but it's the best we can do
-        self.routes = {route_costs[0]: self._read_routes(
-            route_costs[1]) for route_costs in carrier_route_costs}
-
-        # set numbers to list of numbers from specified file
-        # **this is an expensive operation** but it's the best we can do
-        self.numbers = self._read_numbers(numbers_file_name)
+        # routes is a dictionary of dictionaries mapping carrier names
+        # to a costs dictionary for that carrier
+        self.routes = {}
 
     # ------------------------------------------------------------------------------
     # CallRoutes - Intended Private Methods
     # ------------------------------------------------------------------------------
-    def _read_routes(self, file_name):
+
+    def _read_route_costs(self, file_name):
         """Read route costs file into a dictionary and return the result.
         Runtime: Θ(n) Space: Θ(n)"""
-        data = {}
-        with open('data/' + file_name) as f:
-            for line in f:
+
+        # create a results dictionary
+        results = {}
+
+        # open the specified file
+        with open('data/' + file_name) as route_costs_file:
+
+            # iterate over each line in the open file
+            for line in route_costs_file:
+                # strip the line of \n characters and split
+                # the line by commas into a list
                 row = line.strip().split(',')
                 # if the route is already in dictionary
                 # and the current route has a lower price,
                 # or if the route is not in dictionary
-                if (row[0] in data and data[row[0]] > row[1]) or (row[0] not in data):
-                    if row[0] not in data:
+                if (row[0] in results and results[row[0]] > row[1]) \
+                        or (row[0] not in results):
+                    # only increment route_costs for new entries
+                    if row[0] not in results:
                         self.route_costs += 1
                     # update/insert the route cost
-                    data[row[0]] = row[1]
-        return data
+                    results[row[0]] = row[1]
 
-    def _read_numbers(self, file_name):
+        # return the results dictionary
+        return results
+
+    def _read_phone_numbers(self, file_name):
         """Read phone numbers into a list and return the result.
-        Runtime: Θ(n) Space: Θ(n)"""
-        with open('data/'+file_name) as f:
-            return f.read().splitlines()
+        Runtime: Θ(n) Space: Θ(1)"""
+
+        # open the specified file
+        with open('data/'+file_name) as phone_numbers_file:
+            # return a list of lines in the file,
+            # excluding the \n character
+            return phone_numbers_file.read().splitlines()
+
+    def _list_files(self, filter):
+        """Lists files in data directory that match filter. Returns 
+        selected file or None if invalid input.
+        Runtime: Θ(n) Space: Θ(n)."""
+
+        # get list of files in data dir that match filter
+        files = [fileName for fileName in os.listdir(
+            "data/") if filter in fileName]
+
+        print("\n\x1b[0;32m{:=^50}".format("="))
+        print("|\x1b[0;36m{:^48}\x1b[0;32m|".format("Load a File"))
+        print("{:=^50}\n".format("="))
+
+        # print choices to stdout
+        for i in range(len(files)):
+            print("\x1b[1;37m{}.) \x1b[1;35m{}".format(i+1, files[i]))
+
+        print("\x1b[1;37mq.) \x1b[1;33mMain Menu\n")
+        print("\x1b[1;37mPlease make a selection:")
+
+        # wait for input
+        choice = input("\x1b[1;32m> \x1b[0;36m")
+
+        # ensure input was valid and return fileName, otherwise
+        # return None
+        try:
+            index = int(choice)
+            fileName = files[index-1]
+            return fileName
+        except:
+            return None
 
     # ------------------------------------------------------------------------------
     # CallRoutes - Public Methods
@@ -80,123 +124,159 @@ class CallRoutes(object):
         Where n is the number of carriers, and k is the 
         iterations needed to find a match from trimming off 
         the end."""
-        # create a result list
-        result = []
-        # iterate for each carrier, k is the carrier name
-        # and v is the dictionary of route costs
-        for k, v in self.routes.items():
-            # trim numbers off the right side of the number until
-            # we find a match for each carrier
+
+        # create a results list
+        results = []
+
+        # iterate for each carrier in routes dictionary
+        for carrierName, costsDict in self.routes.items():
+            # trim numbers off the right side of the prefix until
+            # we find a match
             for index in range(len(number), 1, -1):
                 # if the trimmed number is in current carrier's
-                # route costs
-                if number[:index] in v:
-                    # append a tuple of carrier, cost to result
+                # costs dictionary
+                if number[:index] in costsDict:
+                    # append a tuple of (carrier, cost) to result
                     # list
-                    result.append((k, v[number[:index]]))
+                    results.append((carrierName, costsDict[number[:index]]))
                     # we found the longest matching prefix,
-                    # break from the inner loop
+                    # break from inner loop and restart the
+                    # process for the next carrier
                     break
-        # if route was not found for any carriers, return 0
-        if len(result) == 0:
+
+        # if prefix was not found for any carriers, return 0
+        if len(results) == 0:
             return 0
-        # return the result list
-        return result
 
-    def yield_costs(self):
-        """Return an iterator to get the costs of each number in self.numbers.
-        Runtime: Θ(nk) Space: Θ(1)"""
-        for number in self.numbers:
-            yield "{} : {}".format(number, self.get_costs(number))
+        # return the results list
+        return results
 
-# ------------------------------------------------------------------------------
+    def load_route_costs(self):
+        """Loads route costs from selected file into memory.
+        Runtime: Θ(n) Space: Θ(1)."""
+
+        # list available route-costs files, wait for a selection,
+        # ensure selection is valid, and get file name
+        fileName = self._list_files("route")
+        if fileName is None:
+            return
+
+        # prompt for carrier name
+        carrier = input("\n\x1b[1;37mPlease enter carrier name: \x1b[0;36m")
+
+        # start timer
+        start = time.time()
+
+        # load selected route-costs file into self.routes
+        self.routes[carrier] = self._read_route_costs(fileName)
+
+        # print function run time
+        print("\n\x1b[0;33mCompleted in {} seconds.".format(
+            round(time.time()-start, 4)))
+
+    def lookup_costs_from_file(self):
+        """Prints costs for all numbers in a file to stdout.
+        Runtime: Θ(n) Space: Θ(1)."""
+
+        # list available phone-numbers files, wait for a selection,
+        # ensure selection is valid, and get file name
+        fileName = self._list_files("phone")
+        if fileName is None:
+            return
+
+        # start timer
+        start = time.time()
+
+        # print costs for selected phone-numbers file
+        for phone_number in self._read_phone_numbers(fileName):
+            print("\n\x1b[1;35m{} \x1b[0;37m: \x1b[1;34m{}".format(
+                phone_number, calls.get_costs(phone_number)))
+
+        # print function run time
+        print("\n\x1b[0;33mCompleted in {} seconds.".format(
+            round(time.time()-start, 4)))
+
+    # ------------------------------------------------------------------------------
+    # CallRoutes - Public Properties
+    # ------------------------------------------------------------------------------
+
+    @property
+    def carriers(self):
+        """Returns the number of carriers in self.routes.
+        Runtime: Θ(n) Space: Θ(1)."""
+        return len(self.routes.keys())
+
+
+# ----------------------------------------------------------------------------------
 # Memory Usage Function
-# ------------------------------------------------------------------------------
-
-
+# ----------------------------------------------------------------------------------
 def get_mem():
-    """Print memory usage to stdout."""
+    """Get current memory usage in mb.
+    Runtime: Θ(1) Space: Θ(1)."""
     usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     if platform.system() == 'Linux':
-        usage = round(usage/float(1 << 10), 2)
-    else:
-        usage = round(usage/float(1 << 20), 2)
-    print("Current Memory Usage: {} mb.".format(usage))
+        return round(usage/float(1 << 10), 2)
+    return round(usage/float(1 << 20), 2)
 
 
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 # Main Entry Point
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 if __name__ == '__main__':
-    # start the timer
-    start = time.time()
-    print("\nInitializing please wait...")
-    # initialize the CallRoutes class with some data
-    # calls = CallRoutes("phone-numbers-10000.txt",
-    #                    ("carrierA", "route-costs-3.txt"),
-    #                    ("carrierB", "route-costs-10.txt"),
-    #                    ("carrierC", "route-costs-100.txt"),
-    #                    ("carrierD", "route-costs-600.txt"),
-    #                    ("carrierE", "route-costs-35000.txt"),
-    #                    ("carrierF", "route-costs-106000.txt"),
-    #                    ("carrierG", "route-costs-1000000.txt"),
-    #                    ("carrierH", "route-costs-10000000.txt"))
-    calls = CallRoutes("phone-numbers-10000.txt",
-                       ("carrierH", "route-costs-10000000.txt"))
 
-    # calculate and print load time and memory
-    load_time = round(time.time()-start, 4)
-    print("\nInitialized {:,} route costs in {} seconds.".format(calls.route_costs,
-                                                                 load_time))
-    get_mem()
+    # create new class instance
+    calls = CallRoutes()
 
-    # Main Loop
+    # Main Menu Loop
     while(True):
-        print("\n==========================================")
-        print("|              Main Menu                 |")
-        print("==========================================")
-        print("\nPlease select an option below:")
-        print("1. Print results for 100 random numbers.")
-        print("2. Get results for a new number.")
-        print("3. Iterate over results one-by-one.")
-        print("4. Display load time and memory statistics.")
-        print("5. Exit the program.")
-        choice = input("\nPlease enter a number: ")
-        # ensure choice is a number, or break
+
+        print("\n\x1b[0;32m{:=^50}".format("="))
+        print("|\x1b[0;36m{:^48}\x1b[0;32m|".format("Main Menu"))
+        print("{:=^50}".format("="))
+        print("\n\x1b[0;33m{:^50}"
+              .format("{} carriers and {:,} route costs currently loaded.".format(
+                  calls.carriers, calls.route_costs)))
+        print("{:^50}\x1b[1;37m".format(
+            "Current Memory Usage: {} mb.".format(get_mem())))
+        print(
+            "\n1.) \x1b[1;34mLoad carrier route costs from a file.\x1b[1;37m")
+        print("2.) \x1b[1;34mLookup costs for a number.\x1b[1;37m")
+        print(
+            "3.) \x1b[1;34mLookup costs for all numbers in a file.\x1b[1;37m")
+        print("4.) \x1b[1;31mExit the program.\x1b[1;37m")
+        print("\nPlease make a selection:")
+
+        # wait for input
+        choice = input("\x1b[1;32m> \x1b[0;36m")
+
+        # ensure input is a number, or continue
         try:
             choice = int(choice)
-        except Exception:
-            break
+        except:
+            continue
+
         # Option 1
         if choice == 1:
-            start = time.time()
-            for _ in range(100):
-                idx = randint(0, len(calls.numbers)-1)
-                print("\n{} : {}".format(
-                    calls.numbers[idx], calls.get_costs(calls.numbers[idx])))
-            print("\nCompleted in {} seconds.".format(
-                round(time.time()-start, 4)))
+            calls.load_route_costs()
+
         # Option 2
         elif choice == 2:
-            new_number = input("\nEnter full number with prefix: ")
-            print("\n{} : {}".format(
-                new_number, calls.get_costs(new_number)))
+            number = input(
+                "\n\x1b[1;37mEnter full number with prefix: \x1b[0;36m")
+            print("\n\x1b[1;35m{} \x1b[0;37m: \x1b[1;34m{}".format(
+                number, calls.get_costs(number)))
+
         # Option 3
         elif choice == 3:
-            costs_gen = calls.yield_costs()
-            while(True):
-                opt = input(
-                    "\nPress any key to get the next result or q to go back to main menu: ")
-                if opt == "q":
-                    break
-                print("\n{}".format(next(costs_gen)))
+            calls.lookup_costs_from_file()
+
         # Option 4
         elif choice == 4:
-            print("\n{:,} route costs were loaded in {} seconds.".format(calls.route_costs,
-                                                                         load_time))
-            get_mem()
-        # Option 5
-        else:
             break
+
+        # Any other number (invalid input)
+        else:
+            continue
+
     # cheerio
-    print("\nGoodbye!")
+    print("\n\x1b[1;32mGoodbye!")
